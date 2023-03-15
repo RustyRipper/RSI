@@ -1,0 +1,18 @@
+syntax = "proto3";
+option java_multiple_files = true;
+option java_package = "org.example.grpc";
+option java_outer_classname = "GrpcAppProto";
+option objc_class_prefix = "GAP";
+package org.example.grpc;
+
+service ServiceName {
+  rpc unaryProcedure (TheRequest) returns (TheResponse) {}
+  rpc streamProcedure (TheRequest) returns (stream TheResponse) {}
+}
+message TheRequest {
+  string name = 1;
+  int32 age = 2;
+}
+message TheResponse {
+  string message = 1;
+}
