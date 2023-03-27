@@ -6,15 +6,11 @@ option objc_class_prefix = "GAP";
 package org.example.grpc;
 
 service ServiceName {
-  rpc unaryProcedure (TheRequest) returns (TheResponse) {}
-  rpc streamProcedure (TheRequest) returns (stream TheResponse) {}
-  rpc unaryProcedureFib (TheRequestFib) returns (stream TheResponseFib) {}
-  rpc streamProcedureFib (TheRequestFib) returns (stream TheResponseFib) {}
-
-  rpc addRecord(MyRecord) returns (MyRecord) {}
-  rpc getRecord(RecordName) returns (MyRecord) {}
-  rpc getRecordsList(RecordEmpty) returns (stream RecordName) {}
-  rpc deleteRecord(RecordName) returns (RecordName) {}
+  rpc addCarRecord(CarRecord) returns (CarRecord) {}
+  rpc getCarRecord(CarName) returns (CarRecord) {}
+  rpc getCarRecordsList(RecordEmpty) returns (stream CarName) {}
+  rpc deleteCarRecord(CarName) returns (CarRecord) {}
+  rpc streamToClientCar (CarName) returns (stream ByteResponse) {}
 
   rpc streamToSrv (stream ByteRequest2) returns (ByteResponse2) {}
   rpc streamToClient (ByteRequest) returns (stream ByteResponse) {}
@@ -26,6 +22,7 @@ message ByteResponse2 {
 message ByteRequest2 {
   int32 num_of_bytes = 1;
   bytes chunk = 2;
+  string file_name = 3;
 }
 
 message ByteResponse {
@@ -36,29 +33,14 @@ message ByteRequest {
   string path = 1;
 }
 
-message TheRequest {
+message CarRecord {
   string name = 1;
-  int32 age = 2;
-}
-message TheResponse {
-  string message = 1;
-}
-message TheRequestFib {
-  int32 ile = 1;
-  int32 co = 2;
-}
-message TheResponseFib {
-  int32 wynik = 1;
-  int32 wynik23 = 2;
+  int32 year = 2;
+  string color = 3;
+  string path = 4;
 }
 
-message MyRecord {
-  string name = 1;
-  int32 age = 2;
-  string address = 3;
-}
-
-message RecordName {
-  string name = 1;
+message CarName {
+  string carName = 1;
 }
 message RecordEmpty {}

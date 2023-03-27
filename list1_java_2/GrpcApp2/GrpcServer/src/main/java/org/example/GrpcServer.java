@@ -26,79 +26,33 @@ public class GrpcServer {
     }
 
     static class MyServiceImpl extends ServiceNameGrpc.ServiceNameImplBase {
-        ArrayList<MyRecord> recordArrayList = new ArrayList<>();
+        ArrayList<CarRecord> recordArrayList;
 
-        @Override
-        public void unaryProcedure(TheRequest req, StreamObserver<TheResponse> responseObserver) {
-            String msg;
-            System.out.println("...called UnaryProcedure - start");
-            if (req.getAge() > 18) msg = "Mr/Ms " + req.getName();
-            else msg = "Boy/Girl";
-            TheResponse response = TheResponse.newBuilder().setMessage("Hello " + msg).build();
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            responseObserver.onNext(response);
-            responseObserver.onCompleted();
-            System.out.println("...called UnaryProcedure - end");
+        public MyServiceImpl() {
+            recordArrayList = new ArrayList<>();
+            recordArrayList.add(CarRecord.newBuilder().setName("fiat").setColor("black").setYear(1999)
+                    .setPath("C:\\git_projects\\RSI\\list1_java_2\\GrpcApp2\\serverFiles\\fiat.png").build());
+            recordArrayList.add(CarRecord.newBuilder().setName("Audi").setYear(2001).setColor("White")
+                    .setPath("C:\\git_projects\\RSI\\list1_java_2\\GrpcApp2\\serverFiles\\audi.png").build());
+            recordArrayList.add(CarRecord.newBuilder().setName("BMW").setYear(2002).setColor("Red")
+                    .setPath("C:\\git_projects\\RSI\\list1_java_2\\GrpcApp2\\serverFiles\\bmw.png").build());
         }
 
-        public void streamProcedure(TheRequest req,
-                                    StreamObserver<TheResponse> responseObserver) {
-            for (int i = 0; i < 9; i++) {
-                TheResponse response = TheResponse.newBuilder()
-                        .setMessage("Stream chunk " + (i + 1)).build();
-                // [enter here Thread.sleep to easier trace the operation]
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                responseObserver.onNext(response);
+        public CarRecord getCarByName(String name) {
+            if (recordArrayList.isEmpty()) {
+                return null;
             }
-            responseObserver.onCompleted();
-        }
-
-        public void streamProcedureFib(TheRequestFib req,
-                                       StreamObserver<TheResponseFib> responseObserver) {
-            int ile = req.getIle();
-            int co = req.getCo();
-            int temp = 1;
-            int x1 = 0;
-            int x2 = 1;
-            int result = 0;
-            for (int i = 0; i < ile; i++) {
-
-                if (co == 2) {
-                    result = x2 * x2;
-                } else if (co == 3) {
-                    result = x2 * x2 * x2;
+            for (CarRecord carRecord : recordArrayList) {
+                if (carRecord.getName().equals(name)) {
+                    return carRecord;
                 }
-                // [enter here Thread.sleep to easier trace the operation]
-                temp = x1 + x2;
-
-                TheResponseFib response = TheResponseFib.newBuilder()
-                        .setWynik(x2).setWynik23(result).build();
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                x1 = x2;
-                x2 = temp;
-                responseObserver.onNext(response);
-
             }
-
-            responseObserver.onCompleted();
+            return null;
         }
-
 
         public void streamToClient(ByteRequest req,
                                    StreamObserver<ByteResponse> responseObserver) {
-            int BUFF_SIZE = 1000;
+            int BUFF_SIZE = 20000;
             byte[] buffer = new byte[BUFF_SIZE];
             String path = req.getPath();
             System.out.println(path);
@@ -122,22 +76,26 @@ public class GrpcServer {
         }
 
         public StreamObserver<ByteRequest2> streamToSrv(StreamObserver<ByteResponse2> responseObserver) {
+            final boolean[] isRun = {false};
 
-            FileOutputStream fileOutputStream =
-                    null;
-            try {
-                fileOutputStream = new FileOutputStream(
-                        new File("C:\\git_projects\\RSI\\list1_java_2\\GrpcApp2\\serverFiles\\fromClient.png"));
-            } catch (FileNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-            FileOutputStream finalFileOutputStream = fileOutputStream;
+            final FileOutputStream[] fileOutputStream = new FileOutputStream[1];
             StreamObserver<ByteRequest2> srvObserver = new StreamObserver<ByteRequest2>() {
                 @Override
                 public void onNext(ByteRequest2 value) {
+
+                    if (!isRun[0]) {
+                        try {
+                            fileOutputStream[0] = new FileOutputStream
+                                    (new File("C:\\git_projects\\RSI\\list1_java_2\\GrpcApp2\\serverFiles\\" + value.getFileName()));
+                        } catch (FileNotFoundException e) {
+                            throw new RuntimeException(e);
+                        }
+                        isRun[0] = true;
+                    }
+
                     try {
                         System.out.println(value.getChunk() + " " + value.getNumOfBytes());
-                        finalFileOutputStream.write(value.getChunk().toByteArray());
+                        fileOutputStream[0].write(value.getChunk().toByteArray());
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -151,8 +109,8 @@ public class GrpcServer {
                 @Override
                 public void onCompleted() {
                     try {
-                        finalFileOutputStream.flush();
-                        finalFileOutputStream.close();
+                        fileOutputStream[0].flush();
+                        fileOutputStream[0].close();
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -165,30 +123,81 @@ public class GrpcServer {
         }
 
 
-        public void addRecord(MyRecord record,
-                              StreamObserver<MyRecord> responseObserver) {
+        public void addCarRecord(CarRecord record,
+                                 StreamObserver<CarRecord> responseObserver) {
             recordArrayList.add(record);
             responseObserver.onNext(record);
             responseObserver.onCompleted();
 
         }
 
-        public void deleteRecord(RecordName record,
-                                 StreamObserver<RecordName> responseObserver) {
-            recordArrayList.removeIf(recordTMP -> recordTMP.getName().equals(record.getName()));
+        public void deleteCarRecord(CarName record,
+                                    StreamObserver<CarRecord> responseObserver) {
+
+            if (recordArrayList.isEmpty()) {
+                return;
+            }
+            for (CarRecord myRecord : recordArrayList) {
+                if (myRecord.getName().equals(record.getCarName())) {
+                    System.out.println("DELETE " + record.getCarName());
+                    responseObserver.onNext(myRecord);
+                    recordArrayList.remove(myRecord);
+                    responseObserver.onCompleted();
+                    return;
+                }
+            }
 
         }
 
-        public void getRecord(RecordName record,
-                              StreamObserver<MyRecord> responseObserver) {
-            System.out.println(record.getName());
-            for (MyRecord myRecord : recordArrayList) {
-                if (myRecord.getName().equals(record.getName())) {
+        public void getCarRecord(CarName record,
+                                 StreamObserver<CarRecord> responseObserver) {
+            if (recordArrayList.isEmpty()) {
+                return;
+            }
+            for (CarRecord myRecord : recordArrayList) {
+                if (myRecord.getName().equals(record.getCarName())) {
                     responseObserver.onNext(myRecord);
                     responseObserver.onCompleted();
                 }
             }
         }
 
+        public void getCarRecordsList(RecordEmpty recordEmpty, StreamObserver<CarName> responseObserver) {
+            if (recordArrayList.isEmpty()) {
+                return;
+            }
+            for (CarRecord myRecord : recordArrayList) {
+                System.out.println(myRecord);
+                responseObserver.onNext(CarName.newBuilder().setCarName(myRecord.getName()).build());
+            }
+            responseObserver.onCompleted();
+        }
+
+        public void streamToClientCar(CarName carName, StreamObserver<ByteResponse> responseObserver) {
+            CarRecord carRecord = getCarByName(carName.getCarName());
+
+            int BUFF_SIZE = 20000;
+            byte[] buffer = new byte[BUFF_SIZE];
+            String path = carRecord.getPath();
+            System.out.println(path);
+            try (FileInputStream fileInputStream = new FileInputStream(new File(path))) {
+                int buf;
+                while ((buf = fileInputStream.read(buffer)) > 0) {
+                    ByteResponse byteResponse = ByteResponse
+                            .newBuilder()
+                            .setChunk(ByteString.copyFrom(buffer))
+                            .setNumOfBytes(buf)
+                            .build();
+
+                    responseObserver.onNext(byteResponse);
+                    Thread.sleep(500);
+                }
+            } catch (IOException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+            responseObserver.onCompleted();
+
+        }
     }
 }
