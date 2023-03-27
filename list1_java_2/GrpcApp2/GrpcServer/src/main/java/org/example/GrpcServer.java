@@ -1,14 +1,14 @@
 package org.example;
 
+import com.google.protobuf.ByteString;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 
 import io.grpc.stub.StreamObserver;
-import org.example.grpc.ServiceNameGrpc;
-import org.example.grpc.TheRequest;
-import org.example.grpc.TheResponse;
+import org.example.grpc.*;
 
-import java.io.IOException;
+import java.io.*;
+import java.util.ArrayList;
 
 public class GrpcServer {
     public static void main(String[] args) {
@@ -19,14 +19,14 @@ public class GrpcServer {
             server.start();
             System.out.println("...Server started");
             server.awaitTermination();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
+
     }
 
     static class MyServiceImpl extends ServiceNameGrpc.ServiceNameImplBase {
+        ArrayList<MyRecord> recordArrayList = new ArrayList<>();
 
         @Override
         public void unaryProcedure(TheRequest req, StreamObserver<TheResponse> responseObserver) {
@@ -36,7 +36,7 @@ public class GrpcServer {
             else msg = "Boy/Girl";
             TheResponse response = TheResponse.newBuilder().setMessage("Hello " + msg).build();
             try {
-                Thread.sleep(2000);
+                Thread.sleep(5000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -44,6 +44,7 @@ public class GrpcServer {
             responseObserver.onCompleted();
             System.out.println("...called UnaryProcedure - end");
         }
+
         public void streamProcedure(TheRequest req,
                                     StreamObserver<TheResponse> responseObserver) {
             for (int i = 0; i < 9; i++) {
@@ -59,5 +60,135 @@ public class GrpcServer {
             }
             responseObserver.onCompleted();
         }
+
+        public void streamProcedureFib(TheRequestFib req,
+                                       StreamObserver<TheResponseFib> responseObserver) {
+            int ile = req.getIle();
+            int co = req.getCo();
+            int temp = 1;
+            int x1 = 0;
+            int x2 = 1;
+            int result = 0;
+            for (int i = 0; i < ile; i++) {
+
+                if (co == 2) {
+                    result = x2 * x2;
+                } else if (co == 3) {
+                    result = x2 * x2 * x2;
+                }
+                // [enter here Thread.sleep to easier trace the operation]
+                temp = x1 + x2;
+
+                TheResponseFib response = TheResponseFib.newBuilder()
+                        .setWynik(x2).setWynik23(result).build();
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                x1 = x2;
+                x2 = temp;
+                responseObserver.onNext(response);
+
+            }
+
+            responseObserver.onCompleted();
+        }
+
+
+        public void streamToClient(ByteRequest req,
+                                   StreamObserver<ByteResponse> responseObserver) {
+            int BUFF_SIZE = 1000;
+            byte[] buffer = new byte[BUFF_SIZE];
+            String path = req.getPath();
+            System.out.println(path);
+            try (FileInputStream fileInputStream = new FileInputStream(new File(path))) {
+                int buf;
+                while ((buf = fileInputStream.read(buffer)) > 0) {
+                    ByteResponse byteResponse = ByteResponse
+                            .newBuilder()
+                            .setChunk(ByteString.copyFrom(buffer))
+                            .setNumOfBytes(buf)
+                            .build();
+
+                    responseObserver.onNext(byteResponse);
+                    Thread.sleep(500);
+                }
+            } catch (IOException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+            responseObserver.onCompleted();
+        }
+
+        public StreamObserver<ByteRequest2> streamToSrv(StreamObserver<ByteResponse2> responseObserver) {
+
+            FileOutputStream fileOutputStream =
+                    null;
+            try {
+                fileOutputStream = new FileOutputStream(
+                        new File("C:\\git_projects\\RSI\\list1_java_2\\GrpcApp2\\serverFiles\\fromClient.png"));
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+            FileOutputStream finalFileOutputStream = fileOutputStream;
+            StreamObserver<ByteRequest2> srvObserver = new StreamObserver<ByteRequest2>() {
+                @Override
+                public void onNext(ByteRequest2 value) {
+                    try {
+                        System.out.println(value.getChunk() + " " + value.getNumOfBytes());
+                        finalFileOutputStream.write(value.getChunk().toByteArray());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+
+                @Override
+                public void onError(Throwable t) {
+                    System.out.println("-->byte onError");
+                }
+
+                @Override
+                public void onCompleted() {
+                    try {
+                        finalFileOutputStream.flush();
+                        finalFileOutputStream.close();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    ByteResponse2 response = ByteResponse2.newBuilder().setStatus("OK").build();
+                    responseObserver.onNext(response);
+                    responseObserver.onCompleted();
+                }
+            };
+            return srvObserver;
+        }
+
+
+        public void addRecord(MyRecord record,
+                              StreamObserver<MyRecord> responseObserver) {
+            recordArrayList.add(record);
+            responseObserver.onNext(record);
+            responseObserver.onCompleted();
+
+        }
+
+        public void deleteRecord(RecordName record,
+                                 StreamObserver<RecordName> responseObserver) {
+            recordArrayList.removeIf(recordTMP -> recordTMP.getName().equals(record.getName()));
+
+        }
+
+        public void getRecord(RecordName record,
+                              StreamObserver<MyRecord> responseObserver) {
+            System.out.println(record.getName());
+            for (MyRecord myRecord : recordArrayList) {
+                if (myRecord.getName().equals(record.getName())) {
+                    responseObserver.onNext(myRecord);
+                    responseObserver.onCompleted();
+                }
+            }
+        }
+
     }
 }
