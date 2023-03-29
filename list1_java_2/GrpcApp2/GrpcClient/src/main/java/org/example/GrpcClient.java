@@ -30,32 +30,72 @@ public class GrpcClient {
             }
             String[] array = line.split(" ");
             switch (array[0]) {
-                case ("add"):
-                    nonbStub2.addCarRecord(CarRecord.newBuilder().setName(array[1]).setYear(Integer.parseInt(array[2]))
-                            .setColor(array[3]).setPath(array[4]).build(), new CarStrObs());
-                    break;
-                case ("rm"):
-                    nonbStub2.deleteCarRecord(CarName.newBuilder().setCarName(array[1]).build(), new CarStrObs());
-                    break;
-
-                case ("get"):
-                    nonbStub2.getCarRecord(CarName.newBuilder().setCarName(array[1]).build(), new CarStrObs());
-                    break;
-
-                case ("getL"):
-                    nonbStub2.getCarRecordsList(RecordEmpty.newBuilder().build(), new CarNameStrObs());
-                    break;
-
-                case ("down"):
-                    nonbStub2.streamToClientCar(CarName.newBuilder().setCarName(array[1]).build(), new StrObsServerToClient(array[2]));
-                    break;
-                case ("up"):
-                    String from = array[1];
-                    String to = array[2];
-                    sendToServer(nonbStub2, from, to);
-                    break;
+                case ("help") -> {
+                    if (array.length == 1) {
+                        System.out.println("add [name] [year] [color] [path]");
+                        System.out.println("getL");
+                        System.out.println("get [name]");
+                        System.out.println("rm [name]");
+                        System.out.println("down [name] [filename_client]");
+                        System.out.println("up [filename_client] [filename_server]");
+                    }
+                    else {
+                        System.out.println("ERROR COMMAND");
+                    }
+                }
+                case ("add") -> {
+                    if (array.length == 5) {
+                        nonbStub2.addCarRecord(CarRecord.newBuilder().setName(array[1]).setYear(Integer.parseInt(array[2]))
+                                .setColor(array[3]).setPath(array[4]).build(), new CarStrObs());
+                    }
+                    else {
+                        System.out.println("ERROR COMMAND");
+                    }
+                }
+                case ("rm") -> {
+                    if (array.length == 2) {
+                        nonbStub2.deleteCarRecord(CarName.newBuilder().setCarName(array[1]).build(), new CarStrObs());
+                    }
+                    else {
+                        System.out.println("ERROR COMMAND");
+                    }
+                }
+                case ("get") -> {
+                    if (array.length == 2) {
+                        nonbStub2.getCarRecord(CarName.newBuilder().setCarName(array[1]).build(), new CarStrObs());
+                    }
+                    else {
+                        System.out.println("ERROR COMMAND");
+                    }
+                }
+                case ("getL") -> {
+                    if (array.length == 1) {
+                        nonbStub2.getCarRecordsList(RecordEmpty.newBuilder().build(), new CarNameStrObs());
+                    }
+                    else {
+                        System.out.println("ERROR COMMAND");
+                    }
+                }
+                case ("down") -> {
+                    if (array.length == 3) {
+                        nonbStub2.streamToClientCar(CarName.newBuilder().setCarName(array[1]).build(), new StrObsServerToClient(array[2]));
+                    }
+                    else {
+                        System.out.println("ERROR COMMAND");
+                    }
+                }
+                case ("up") -> {
+                    if (array.length == 3) {
+                        String from = array[1];
+                        String to = array[2];
+                        sendToServer(nonbStub2, from, to);
+                    }
+                    else {
+                        System.out.println("ERROR COMMAND");
+                    }
+                }
             }
-            Thread.sleep(500);
+            Thread.sleep(1000);
         }
 
     }
@@ -99,7 +139,7 @@ public class GrpcClient {
 
         @Override
         public void onCompleted() {
-            System.out.println("endCar");
+            System.out.println("end CarRecord");
         }
     }
 
@@ -117,7 +157,7 @@ public class GrpcClient {
 
         @Override
         public void onCompleted() {
-            System.out.println("endCarName");
+            System.out.println("end CarName");
         }
     }
 

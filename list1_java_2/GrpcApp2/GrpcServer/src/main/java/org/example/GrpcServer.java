@@ -125,6 +125,10 @@ public class GrpcServer {
 
         public void addCarRecord(CarRecord record,
                                  StreamObserver<CarRecord> responseObserver) {
+            if(getCarByName(record.getName()) != null){
+                responseObserver.onError(new Exception("Car exist"));
+                return;
+            }
             recordArrayList.add(record);
             responseObserver.onNext(record);
             responseObserver.onCompleted();
