@@ -62,7 +62,7 @@ public class GrpcClient {
         ServiceNameGrpc.ServiceNameStub nonbStub2;
         nonbStub2 = ServiceNameGrpc.newStub(channel);
         ByteRequest byteRequest = ByteRequest.newBuilder()
-                .setPath("C:\\git_projects\\RSI\\list1_java_2\\GrpcApp2\\serverFiles\\server.png").build();
+                .setPath("C:\\git_projects\\RSI\\list1_java_2\\GrpcApp2\\serverFiles\\BMWserver.png").build();
         nonbStub2.streamToClient(byteRequest, new StrObs2());
         //StreamObserver<ByteRequest> strReqObserver = nonbStub2.streamToSrv( new StrObs2());
         //MyRecord myRecord = MyRecord.newBuilder().setName("Maciej").setAge(18).setAddress("Wroclaw").build();
@@ -147,22 +147,6 @@ public class GrpcClient {
         }
 
         public void onCompleted() {
-        }
-    }
-
-    private static class RecordObs implements StreamObserver<MyRecord> {
-
-        @Override
-        public void onNext(MyRecord value) {
-            System.out.println("Record: " + value.getName() + " " + value.getAge() + " " + value.getAddress());
-        }
-
-        public void onError(Throwable throwable) {
-            System.out.println("-->byte onError");
-        }
-
-        public void onCompleted() {
-
         }
     }
 

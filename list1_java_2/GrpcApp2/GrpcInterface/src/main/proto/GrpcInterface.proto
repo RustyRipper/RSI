@@ -11,11 +11,6 @@ service ServiceName {
   rpc unaryProcedureFib (TheRequestFib) returns (stream TheResponseFib) {}
   rpc streamProcedureFib (TheRequestFib) returns (stream TheResponseFib) {}
 
-  rpc addRecord(MyRecord) returns (MyRecord) {}
-  rpc getRecord(RecordName) returns (MyRecord) {}
-  rpc getRecordsList(RecordEmpty) returns (stream RecordName) {}
-  rpc deleteRecord(RecordName) returns (RecordName) {}
-
   rpc streamToSrv (stream ByteRequest2) returns (ByteResponse2) {}
   rpc streamToClient (ByteRequest) returns (stream ByteResponse) {}
 }
@@ -52,13 +47,3 @@ message TheResponseFib {
   int32 wynik23 = 2;
 }
 
-message MyRecord {
-  string name = 1;
-  int32 age = 2;
-  string address = 3;
-}
-
-message RecordName {
-  string name = 1;
-}
-message RecordEmpty {}

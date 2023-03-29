@@ -26,7 +26,6 @@ public class GrpcServer {
     }
 
     static class MyServiceImpl extends ServiceNameGrpc.ServiceNameImplBase {
-        ArrayList<MyRecord> recordArrayList = new ArrayList<>();
 
         @Override
         public void unaryProcedure(TheRequest req, StreamObserver<TheResponse> responseObserver) {
@@ -162,32 +161,6 @@ public class GrpcServer {
                 }
             };
             return srvObserver;
-        }
-
-
-        public void addRecord(MyRecord record,
-                              StreamObserver<MyRecord> responseObserver) {
-            recordArrayList.add(record);
-            responseObserver.onNext(record);
-            responseObserver.onCompleted();
-
-        }
-
-        public void deleteRecord(RecordName record,
-                                 StreamObserver<RecordName> responseObserver) {
-            recordArrayList.removeIf(recordTMP -> recordTMP.getName().equals(record.getName()));
-
-        }
-
-        public void getRecord(RecordName record,
-                              StreamObserver<MyRecord> responseObserver) {
-            System.out.println(record.getName());
-            for (MyRecord myRecord : recordArrayList) {
-                if (myRecord.getName().equals(record.getName())) {
-                    responseObserver.onNext(myRecord);
-                    responseObserver.onCompleted();
-                }
-            }
         }
 
     }
