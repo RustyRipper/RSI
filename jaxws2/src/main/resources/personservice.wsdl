@@ -1,0 +1,250 @@
+<definitions
+        targetNamespace="http://example.org/"
+        xmlns:xs="http://www.w3.org/2001/XMLSchema"
+        xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+        xmlns:tns="http://example.org/"
+        xmlns="http://schemas.xmlsoap.org/wsdl/"
+        name="PersonService">
+    <types>
+        <xs:schema xmlns:tns="http://example.org/" xmlns:xs="http://www.w3.org/2001/XMLSchema" version="1.0"
+                   targetNamespace="http://example.org/">
+            <xs:element name="PersonExistsEx" type="tns:PersonExistsEx"/>
+            <xs:element name="PersonNotFoundEx" type="tns:PersonNotFoundEx"/>
+            <xs:element name="addPerson" type="tns:addPerson"/>
+            <xs:element name="addPersonResponse" type="tns:addPersonResponse"/>
+            <xs:element name="countPersons" type="tns:countPersons"/>
+            <xs:element name="countPersonsResponse" type="tns:countPersonsResponse"/>
+            <xs:element name="deletePerson" type="tns:deletePerson"/>
+            <xs:element name="deletePersonResponse" type="tns:deletePersonResponse"/>
+            <xs:element name="getAllPersons" type="tns:getAllPersons"/>
+            <xs:element name="getAllPersonsResponse" type="tns:getAllPersonsResponse"/>
+            <xs:element name="getPerson" type="tns:getPerson"/>
+            <xs:element name="getPersonResponse" type="tns:getPersonResponse"/>
+            <xs:element name="updatePerson" type="tns:updatePerson"/>
+            <xs:element name="updatePersonResponse" type="tns:updatePersonResponse"/>
+            <xs:complexType name="getAllPersons">
+                <xs:sequence/>
+            </xs:complexType>
+            <xs:complexType name="getAllPersonsResponse">
+                <xs:sequence>
+                    <xs:element name="return" type="tns:person" minOccurs="0" maxOccurs="unbounded"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="person">
+                <xs:sequence>
+                    <xs:element name="age" type="xs:int"/>
+                    <xs:element name="firstName" type="xs:string" minOccurs="0"/>
+                    <xs:element name="id" type="xs:int"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="countPersons">
+                <xs:sequence/>
+            </xs:complexType>
+            <xs:complexType name="countPersonsResponse">
+                <xs:sequence>
+                    <xs:element name="return" type="xs:int"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="addPerson">
+                <xs:sequence>
+                    <xs:element name="arg0" type="xs:int"/>
+                    <xs:element name="arg1" type="xs:string" minOccurs="0"/>
+                    <xs:element name="arg2" type="xs:int"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="addPersonResponse">
+                <xs:sequence>
+                    <xs:element name="return" type="tns:person" minOccurs="0"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="PersonExistsEx">
+                <xs:sequence>
+                    <xs:element name="message" type="xs:string" minOccurs="0"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="updatePerson">
+                <xs:sequence>
+                    <xs:element name="arg0" type="xs:int"/>
+                    <xs:element name="arg1" type="xs:string" minOccurs="0"/>
+                    <xs:element name="arg2" type="xs:int"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="updatePersonResponse">
+                <xs:sequence>
+                    <xs:element name="return" type="tns:person" minOccurs="0"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="PersonNotFoundEx">
+                <xs:sequence>
+                    <xs:element name="message" type="xs:string" minOccurs="0"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="getPerson">
+                <xs:sequence>
+                    <xs:element name="arg0" type="xs:int"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="getPersonResponse">
+                <xs:sequence>
+                    <xs:element name="return" type="tns:person" minOccurs="0"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="deletePerson">
+                <xs:sequence>
+                    <xs:element name="arg0" type="xs:int"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="deletePersonResponse">
+                <xs:sequence>
+                    <xs:element name="return" type="xs:boolean"/>
+                </xs:sequence>
+            </xs:complexType>
+        </xs:schema>
+    </types>
+    <message name="getPerson">
+        <part name="parameters" element="tns:getPerson"/>
+    </message>
+    <message name="getPersonResponse">
+        <part name="parameters" element="tns:getPersonResponse"/>
+    </message>
+    <message name="PersonNotFoundEx">
+        <part name="fault" element="tns:PersonNotFoundEx"/>
+    </message>
+    <message name="addPerson">
+        <part name="parameters" element="tns:addPerson"/>
+    </message>
+    <message name="addPersonResponse">
+        <part name="parameters" element="tns:addPersonResponse"/>
+    </message>
+    <message name="PersonExistsEx">
+        <part name="fault" element="tns:PersonExistsEx"/>
+    </message>
+    <message name="updatePerson">
+        <part name="parameters" element="tns:updatePerson"/>
+    </message>
+    <message name="updatePersonResponse">
+        <part name="parameters" element="tns:updatePersonResponse"/>
+    </message>
+    <message name="deletePerson">
+        <part name="parameters" element="tns:deletePerson"/>
+    </message>
+    <message name="deletePersonResponse">
+        <part name="parameters" element="tns:deletePersonResponse"/>
+    </message>
+    <message name="countPersons">
+        <part name="parameters" element="tns:countPersons"/>
+    </message>
+    <message name="countPersonsResponse">
+        <part name="parameters" element="tns:countPersonsResponse"/>
+    </message>
+    <message name="getAllPersons">
+        <part name="parameters" element="tns:getAllPersons"/>
+    </message>
+    <message name="getAllPersonsResponse">
+        <part name="parameters" element="tns:getAllPersonsResponse"/>
+    </message>
+    <portType name="PersonService">
+        <operation name="getPerson">
+            <input message="tns:getPerson"/>
+            <output message="tns:getPersonResponse"/>
+            <fault message="tns:PersonNotFoundEx" name="PersonNotFoundEx"/>
+        </operation>
+        <operation name="addPerson">
+            <input message="tns:addPerson"/>
+            <output message="tns:addPersonResponse"/>
+            <fault message="tns:PersonExistsEx" name="PersonExistsEx"/>
+        </operation>
+        <operation name="updatePerson">
+            <input message="tns:updatePerson"/>
+            <output message="tns:updatePersonResponse"/>
+            <fault message="tns:PersonNotFoundEx" name="PersonNotFoundEx"/>
+        </operation>
+        <operation name="deletePerson">
+            <input message="tns:deletePerson"/>
+            <output message="tns:deletePersonResponse"/>
+            <fault message="tns:PersonNotFoundEx" name="PersonNotFoundEx"/>
+        </operation>
+        <operation name="countPersons">
+            <input message="tns:countPersons"/>
+            <output message="tns:countPersonsResponse"/>
+        </operation>
+        <operation name="getAllPersons">
+            <input message="tns:getAllPersons"/>
+            <output message="tns:getAllPersonsResponse"/>
+        </operation>
+    </portType>
+    <binding name="PersonServiceImplPortBinding" type="tns:PersonService">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <operation name="getPerson">
+            <soap:operation soapAction=""/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="PersonNotFoundEx">
+                <soap:fault name="PersonNotFoundEx" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="addPerson">
+            <soap:operation soapAction=""/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="PersonExistsEx">
+                <soap:fault name="PersonExistsEx" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="updatePerson">
+            <soap:operation soapAction=""/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="PersonNotFoundEx">
+                <soap:fault name="PersonNotFoundEx" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="deletePerson">
+            <soap:operation soapAction=""/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+            <fault name="PersonNotFoundEx">
+                <soap:fault name="PersonNotFoundEx" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="countPersons">
+            <soap:operation soapAction=""/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+        <operation name="getAllPersons">
+            <soap:operation soapAction=""/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
+        </operation>
+    </binding>
+    <service name="PersonService">
+        <port name="PersonServiceImplPort" binding="tns:PersonServiceImplPortBinding">
+            <soap:address location="http://localhost:8081/personservice"/>
+        </port>
+    </service>
+</definitions>
