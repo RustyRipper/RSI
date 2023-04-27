@@ -4,6 +4,7 @@ import jakarta.jws.WebMethod;
 import jakarta.jws.WebService;
 import org.example.Car;
 import org.example.exceptions.CarExistsEx;
+import org.example.exceptions.CarFullListEx;
 import org.example.exceptions.CarNotFoundEx;
 import org.example.repositories.CarRepository;
 import org.example.repositories.CarRepositoryImpl;
@@ -35,7 +36,7 @@ public class CarServiceImpl implements CarService {
     }
 
     @WebMethod
-    public Car addCar(int id, String brand, int year, boolean isElectric) throws CarExistsEx {
+    public Car addCar(int id, String brand, int year, boolean isElectric) throws CarExistsEx, CarFullListEx {
         System.out.println("add Car");
         return dataRepository.addCar(id, brand, year, isElectric);
     }

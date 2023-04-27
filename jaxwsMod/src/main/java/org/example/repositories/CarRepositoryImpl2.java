@@ -61,6 +61,15 @@ public class CarRepositoryImpl2 implements CarRepository2{
     }
 
     @Override
+    public boolean eraseCars() {
+        if(carList.size() > 0){
+            carList = new ArrayList<>();
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     public boolean deleteCar(int id) throws CarNotFoundEx_Exception {
         for (Car theCar : carList) {
             if (theCar.getId() == id) {

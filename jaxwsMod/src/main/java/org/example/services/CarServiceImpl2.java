@@ -44,6 +44,12 @@ public class CarServiceImpl2 implements CarService2 {
         return dataRepository.countCars();
     }
 
+    @Override
+    public boolean eraseCars() {
+        System.out.println("Erase cars");
+        return dataRepository.eraseCars();
+    }
+
     @WebMethod
     public List<Car> getAllCars() {
         System.out.println("get all Cars");

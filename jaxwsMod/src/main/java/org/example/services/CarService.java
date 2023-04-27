@@ -5,6 +5,7 @@ import jakarta.jws.WebMethod;
 import jakarta.jws.WebService;
 import org.example.Car;
 import org.example.exceptions.CarExistsEx;
+import org.example.exceptions.CarFullListEx;
 import org.example.exceptions.CarNotFoundEx;
 
 import java.util.List;
@@ -21,7 +22,7 @@ public interface CarService {
     boolean deleteCar(int id) throws CarNotFoundEx;
 
     @WebMethod
-    Car addCar(int id, String brand, int year, boolean isElectric) throws CarExistsEx;
+    Car addCar(int id, String brand, int year, boolean isElectric) throws CarExistsEx, CarFullListEx;
 
     @WebMethod
     int countCars();

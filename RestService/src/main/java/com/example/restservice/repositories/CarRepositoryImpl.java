@@ -1,9 +1,11 @@
-package org.example.repositories;
+package com.example.restservice.repositories;
 
-import org.example.Car;
-import org.example.exceptions.CarExistsEx;
-import org.example.exceptions.CarFullListEx;
-import org.example.exceptions.CarNotFoundEx;
+
+
+import com.example.restservice.exceptions.CarExistsEx;
+import com.example.restservice.exceptions.CarFullListEx;
+import com.example.restservice.exceptions.CarNotFoundEx;
+import com.example.restservice.models.Car;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,11 +41,11 @@ public class CarRepositoryImpl implements CarRepository{
         }
         throw new CarNotFoundEx();
     }
-    public boolean deleteCar(int id) throws CarNotFoundEx {
+    public Long deleteCar(int id) throws CarNotFoundEx {
         for (Car theCar : carList) {
             if (theCar.getId() == id) {
                 carList.remove(theCar);
-                return true;
+                return Long.valueOf(id);
             }
         }
         throw new CarNotFoundEx();
@@ -62,8 +64,5 @@ public class CarRepositoryImpl implements CarRepository{
         Car car = new Car(id, brand, year, isElectric);
         carList.add(car);
         return car;
-    }
-    public int countCars() {
-        return carList.size();
     }
 }

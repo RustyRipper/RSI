@@ -8,6 +8,8 @@
             <xs:element name="CarExistsEx" type="tns:CarExistsEx"/>
             <xs:element name="CarNotFoundEx" type="tns:CarNotFoundEx"/>
             <xs:element name="addCar" type="tns:addCar"/>
+            <xs:element name="eraseCars" type="tns:eraseCars"/>
+            <xs:element name="eraseCarsResponse" type="tns:eraseCarsResponse"/>
             <xs:element name="addCarResponse" type="tns:addCarResponse"/>
             <xs:element name="countCars" type="tns:countCars"/>
             <xs:element name="countCarsResponse" type="tns:countCarsResponse"/>
@@ -117,6 +119,14 @@
                     <xs:element name="return" type="xs:int"/>
                 </xs:sequence>
             </xs:complexType>
+            <xs:complexType name="eraseCars">
+                <xs:sequence/>
+            </xs:complexType>
+            <xs:complexType name="eraseCarsResponse">
+                <xs:sequence>
+                    <xs:element name="return" type="xs:boolean"/>
+                </xs:sequence>
+            </xs:complexType>
         </xs:schema>
     </types>
     <message name="getCar">
@@ -146,6 +156,12 @@
     <message name="updateCarResponse">
         <part name="parameters" element="tns:updateCarResponse"/>
     </message>
+    <message name="eraseCars">
+        <part name="parameters" element="tns:eraseCars"/>
+    </message>
+    <message name="eraseCarsResponse">
+        <part name="parameters" element="tns:eraseCarsResponse"/>
+    </message>
     <message name="countCars">
         <part name="parameters" element="tns:countCars"/>
     </message>
@@ -174,6 +190,10 @@
         <part name="fault" element="tns:CarExistsEx"/>
     </message>
     <portType name="CarService">
+        <operation name="eraseCars">
+            <input  message="tns:eraseCars"/>
+            <output  message="tns:eraseCarsResponse"/>
+        </operation>
         <operation name="getCar">
             <input  message="tns:getCar"/>
             <output  message="tns:getCarResponse"/>
@@ -225,6 +245,15 @@
             <fault name="CarNotFoundEx">
                 <soap:fault name="CarNotFoundEx" use="literal"/>
             </fault>
+        </operation>
+        <operation name="eraseCars">
+            <soap:operation soapAction=""/>
+            <input>
+                <soap:body use="literal"/>
+            </input>
+            <output>
+                <soap:body use="literal"/>
+            </output>
         </operation>
         <operation name="displayCar">
             <soap:operation soapAction=""/>
@@ -307,4 +336,5 @@
             <soap:address location="http://localhost:8082/carservice"/>
         </port>
     </service>
+
 </definitions>

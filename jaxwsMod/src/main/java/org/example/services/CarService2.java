@@ -26,6 +26,9 @@ public interface CarService2 {
     int countCars();
 
     @WebMethod
+    boolean eraseCars();
+
+    @WebMethod
     List<Car> getAllCars();
 
     @WebMethod

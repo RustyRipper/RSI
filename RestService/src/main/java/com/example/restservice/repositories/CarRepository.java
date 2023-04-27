@@ -1,9 +1,9 @@
-package org.example.repositories;
+package com.example.restservice.repositories;
 
-import org.example.Car;
-import org.example.exceptions.CarExistsEx;
-import org.example.exceptions.CarFullListEx;
-import org.example.exceptions.CarNotFoundEx;
+import com.example.restservice.exceptions.CarExistsEx;
+import com.example.restservice.exceptions.CarFullListEx;
+import com.example.restservice.exceptions.CarNotFoundEx;
+import com.example.restservice.models.Car;
 
 import java.util.List;
 
@@ -15,10 +15,7 @@ public interface CarRepository {
     Car updateCar(int id, String brand, int year, boolean isElectric) throws
             CarNotFoundEx;
 
-    boolean deleteCar(int id) throws CarNotFoundEx;
+    Long deleteCar(int id) throws CarNotFoundEx;
 
     Car addCar(int id, String brand, int year, boolean isElectric) throws CarExistsEx, CarFullListEx;
-
-    int countCars();
-
 }
