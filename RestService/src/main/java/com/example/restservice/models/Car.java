@@ -7,11 +7,22 @@ public class Car {
     private int year;
     private boolean isElectric;
 
-    public Car(int id, String brand, int year, boolean isElectric) {
+    private CarStatus carStatus;
+
+    public CarStatus getCarStatus() {
+        return carStatus;
+    }
+
+    public void setCarStatus(CarStatus carStatus) {
+        this.carStatus = carStatus;
+    }
+
+    public Car(int id, String brand, int year, boolean isElectric, CarStatus carStatus) {
         this.id = id;
         this.brand = brand;
         this.year = year;
         this.isElectric = isElectric;
+        this.carStatus = carStatus;
     }
     public int getId() {
         return id;

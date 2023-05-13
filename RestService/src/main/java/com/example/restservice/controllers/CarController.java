@@ -1,16 +1,21 @@
 package com.example.restservice.controllers;
 
-import com.example.restservice.exceptions.CarExistsEx;
-import com.example.restservice.exceptions.CarFullListEx;
-import com.example.restservice.exceptions.CarNotFoundEx;
+import com.example.restservice.exceptions.*;
 import com.example.restservice.models.Car;
+import com.example.restservice.models.CarStatus;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.example.restservice.repositories.CarRepository;
 import com.example.restservice.repositories.CarRepositoryImpl;
 
+import javax.swing.text.html.parser.Entity;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -28,11 +33,18 @@ public class CarController {
         System.out.println("hello");
         try {
             System.out.println("...called getCar id=" + id);
-            return EntityModel.of(dataRepository.getCar(id),
-                    linkTo(methodOn(CarController.class).getCar(id)).withSelfRel(),
-                    linkTo(methodOn(CarController.class).deleteCar(id)).withRel("delete"),
-                    linkTo(methodOn(CarController.class).getAllCars()).withRel("listall")
-                    );
+            Car car = dataRepository.getCar(id);
+
+            EntityModel<Car> em = EntityModel.of(car);
+            em.add(linkTo(methodOn(CarController.class).getCar(id)).withSelfRel());
+            if(car.getCarStatus() == CarStatus.REGISTERED){
+                em.add(linkTo(methodOn(CarController.class).unregisterCar(id)).withRel("unregister"));
+            }
+            else{
+                em.add(linkTo(methodOn(CarController.class).registerCar(id)).withRel("register"));
+                em.add(linkTo(methodOn(CarController.class).deleteCar(id)).withRel("delete"));
+            }
+            return em;
         } catch (CarNotFoundEx e) {
             System.out.println("...GET Exception");
             throw e;
@@ -41,7 +53,7 @@ public class CarController {
     }
 
     @PutMapping("/cars/{id}")
-    public EntityModel<Car> updateCar(@PathVariable int id, @RequestBody Car car) throws CarNotFoundEx {
+    public EntityModel<Car> updateCar(@PathVariable int id, @RequestBody Car car) throws CarNotFoundEx, CarBadParams {
 
         try {
             System.out.println("...called updateCar");
@@ -72,20 +84,23 @@ public class CarController {
     }
 
     @PostMapping("/cars")
-    public EntityModel<?> addCar(@RequestBody Car car) throws CarExistsEx, CarFullListEx, CarNotFoundEx {
+    public EntityModel<?> addCar(@RequestBody Car car) throws CarNotFoundEx {
 
         try {
+            if(car.getBrand() == null) throw new CarBadParams();
             System.out.println("add Car");
             return EntityModel.of(dataRepository.addCar(car.getId(), car.getBrand(), car.getYear() ,car.isElectric()),
                     linkTo(methodOn(CarController.class).getCar(car.getId())).withSelfRel(),
                     linkTo(methodOn(CarController.class).deleteCar(car.getId())).withRel("delete"),
                     linkTo(methodOn(CarController.class).getAllCars()).withRel("listall")
             );
-        } catch (Exception e) {
+        } catch (CarBadParams | CarExistsEx | CarFullListEx  e) {
             System.out.println("...POST Exception");
-            throw e;
+            System.out.println(e.getMessage());
+            throw new RuntimeException(e);
         }
     }
+
 
     @GetMapping("/cars")
     public CollectionModel<EntityModel<Car>> getAllCars() {
@@ -111,5 +126,51 @@ public class CarController {
         }
     }
 
+
+    @PatchMapping("/cars/{id}/register")
+    public ResponseEntity<?> registerCar(@PathVariable int id){
+        try {
+            Car car = dataRepository.getCar(id);
+            if(car.getCarStatus() == CarStatus.NOT_REGISTERED){
+                dataRepository.updateStatus(id, CarStatus.REGISTERED);
+                ArrayList<Link> list = new ArrayList<>();
+                list.add(linkTo(methodOn(CarController.class).getCar(car.getId())).withSelfRel());
+                list.add(linkTo(methodOn(CarController.class).unregisterCar(car.getId())).withRel("unregister"));
+                list.add(linkTo(methodOn(CarController.class).getAllCars()).withRel("list all"));
+
+                return ResponseEntity.status(HttpStatus.ACCEPTED)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .body(list);
+            }
+            else{
+                throw new ConflictEx();
+            }
+        } catch (CarNotFoundEx | ConflictEx e) {
+            throw new RuntimeException(e);
+        }
+    }
+    @PatchMapping("/cars/{id}/unregister")
+    public ResponseEntity<?> unregisterCar(@PathVariable int id){
+        try {
+            Car car = dataRepository.getCar(id);
+            if(car.getCarStatus() == CarStatus.REGISTERED){
+                dataRepository.updateStatus(id, CarStatus.NOT_REGISTERED);
+                ArrayList<Link> list = new ArrayList<>();
+                list.add(linkTo(methodOn(CarController.class).getCar(car.getId())).withSelfRel());
+                list.add(linkTo(methodOn(CarController.class).registerCar(car.getId())).withRel("register"));
+                list.add( linkTo(methodOn(CarController.class).deleteCar(car.getId())).withRel("delete"));
+                list.add(linkTo(methodOn(CarController.class).getAllCars()).withRel("list all"));
+
+                return ResponseEntity.status(HttpStatus.ACCEPTED)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .body(list);
+            }
+            else{
+                throw new ConflictEx();
+            }
+        } catch (CarNotFoundEx | ConflictEx e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 }

@@ -1,7 +1,9 @@
 package com.example.restservice.controllers;
 
+import com.example.restservice.exceptions.CarBadParams;
 import com.example.restservice.exceptions.CarExistsEx;
 import com.example.restservice.exceptions.CarNotFoundEx;
+import com.example.restservice.exceptions.ConflictEx;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.mediatype.problem.Problem;
 import org.springframework.http.HttpHeaders;
@@ -33,12 +35,39 @@ public class FaultController {
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     ResponseEntity<?> CEEHandler(CarExistsEx e) {
 
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .header(HttpHeaders.CONTENT_TYPE,
                         MediaTypes.HTTP_PROBLEM_DETAILS_JSON_VALUE)
                 .body(Problem.create()
-                        .withStatus(HttpStatus.NOT_FOUND)
-                        .withTitle(HttpStatus.NOT_FOUND.name())
+                        .withStatus(HttpStatus.BAD_REQUEST)
+                        .withTitle(HttpStatus.BAD_REQUEST.name())
                         .withDetail(" - The car of ID EXIST"));
     }
+
+    @ResponseBody
+    @ExceptionHandler(ConflictEx.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    ResponseEntity<?> ConflictHandler(ConflictEx e){
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .header(HttpHeaders.CONTENT_TYPE,
+                        MediaTypes.HTTP_PROBLEM_DETAILS_JSON_VALUE)
+                .body(Problem.create()
+                        .withStatus(HttpStatus.CONFLICT)
+                        .withTitle(HttpStatus.CONFLICT.name())
+                        .withDetail(" - Cant register car, bad status"));
+    }
+
+    @ResponseBody
+    @ExceptionHandler(CarBadParams.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    ResponseEntity<?> ParamsHandler(CarBadParams e){
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .header(HttpHeaders.CONTENT_TYPE,
+                        MediaTypes.HTTP_PROBLEM_DETAILS_JSON_VALUE)
+                .body(Problem.create()
+                        .withStatus(HttpStatus.BAD_REQUEST)
+                        .withTitle(HttpStatus.BAD_REQUEST.name())
+                        .withDetail(" - Bad params for car"));
+    }
+
 }
