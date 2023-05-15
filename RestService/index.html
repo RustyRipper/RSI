@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AJAX Example</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<h1>AJAX Example</h1>
+
+<p>Click the button to load data:</p>
+<button onclick="getCar()">Load Data</button>
+<div id="data"></div>
+
+<p>Enter your name:</p>
+<input type="text" id="id">
+<input type="text" id="brand">
+<input type="text" id="year">
+<input type="text" id="electric">
+<button onclick="sendData()">Send Data</button>
+<button onclick="getCars()">show all</button>
+<div id="result"></div>
+<table id="cartable" >
+</table>
+
+<script>
+    function getCar() {
+        var id = $("#id").val();
+        $.ajax({
+            url: 'http://localhost:8080/cars' + "/" + id,
+            type: 'GET',
+            success: function(data) {
+                document.getElementById("brand").value=data.brand;
+                document.getElementById("year").value=data.year;
+                document.getElementById("electric").value=data.electric;
+                $('#data').text(JSON.stringify(data));
+            },
+            error: function() {
+                $('#data').text('Error loading data.');
+            }
+        });
+    }
+
+    function getCars() {
+        $.ajax({
+            url: 'http://localhost:8080/cars',
+            type: 'GET',
+            success: function(data) {
+                showCars(data)
+            },
+            error: function() {
+                $('#data').text('Error loading data.');
+            }
+        });
+    }
+
+    function sendData() {
+        var id = $('#id').val();
+        var brand = $('#brand').val();
+        var year = $('#year').val();
+        var electric = $('#electric').val();
+        $.ajax({
+            url: 'http://localhost:8080/cars',
+            type: 'POST',
+            data: JSON.stringify({ id: id , brand: brand, year: year, electric: electric}),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function(data) {
+                $('#result').text(JSON.stringify(data));
+
+            },
+            error: function() {
+                $('#result').text('Error sending data.');
+            }
+        });
+    }
+    function showCars(msg)
+    {
+        console.log(msg);
+        $("#cartable tbody").remove(); //remove previous data
+        $.each(msg._embedded.carList, function (id, car) { // iterate by all JSON elements
+            // (books)
+            // First check if a <tbody> tag exists and add one if not
+            if ($("#cartable tbody").length == 0) {
+                $("#cartable").append("<tbody></tbody>");
+            }
+            // Append table row to <table> (in <tbody> part)
+            $("#cartable tbody").append("<tr>" +
+                "<td>" + car.id + "</td>" +
+                "<td>" + car.brand + "</td>" +
+                "<td>" + car.year + "</td>" +
+                "<td>" + car.electric + "</td>" +
+                "</td>" +
+                "</tr>");
+        });
+    }
+</script>
+</body>
+</html>
