@@ -1,42 +1,74 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>AJAX Example</title>
+    <title>AJAX RSI lab5</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-<h1>AJAX Example</h1>
+<h1>RSI list5</h1>
 
-<p>Click the button to load data:</p>
-<button onclick="getCar()">Load Data</button>
 <div id="data"></div>
 
-<p>Enter your name:</p>
+
+<p>ID</p>
 <input type="text" id="id">
+<p>BRAND</p>
 <input type="text" id="brand">
+<p>YEAR</p>
 <input type="text" id="year">
+<p>ELECTRIC</p>
 <input type="text" id="electric">
-<button onclick="sendData()">Send Data</button>
-<button onclick="getCars()">show all</button>
+<br>
+<br>
+<div id="button-container">
+    <button onclick="getCar()">getCar</button>
+    <button onclick="postCar()">postCar</button>
+    <button onclick="getCars()">show all</button>
+    <button onclick="putCar()">putCar</button>
+    <button onclick="deleteCar(null)">deleteCar</button>
+</div>
 <div id="result"></div>
-<table id="cartable" >
+<table id="cartable">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Brand</th>
+        <th>Year</th>
+        <th>Electric</th>
+        <th>Status</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody id="carlist"></tbody>
 </table>
 
 <script>
-    function getCar() {
-        var id = $("#id").val();
-        $.ajax({
-            url: 'http://localhost:8080/cars' + "/" + id,
-            type: 'GET',
-            success: function(data) {
-                document.getElementById("brand").value=data.brand;
-                document.getElementById("year").value=data.year;
-                document.getElementById("electric").value=data.electric;
-                $('#data').text(JSON.stringify(data));
-            },
-            error: function() {
-                $('#data').text('Error loading data.');
-            }
+    function getCar(id) {
+        console.log(id);
+        if (id == null) {
+            id = $('#id').val();
+        }
+        console.log(id);
+
+        return new Promise(function (resolve, reject) {
+            $.ajax({
+                url: 'http://localhost:8080/cars' + "/" + id,
+                type: 'GET',
+                success: function (data) {
+                    document.getElementById("id").value = data.id;
+                    document.getElementById("brand").value = data.brand;
+                    document.getElementById("year").value = data.year;
+                    document.getElementById("electric").value = data.electric;
+                    $('#data').text(JSON.stringify(data));
+                    resolve(data);
+                },
+                error: function () {
+                    $('#data').text('Error loading data.');
+                    reject();
+                }
+            });
         });
     }
 
@@ -44,16 +76,16 @@
         $.ajax({
             url: 'http://localhost:8080/cars',
             type: 'GET',
-            success: function(data) {
+            success: function (data) {
                 showCars(data)
             },
-            error: function() {
+            error: function () {
                 $('#data').text('Error loading data.');
             }
         });
     }
 
-    function sendData() {
+    function postCar() {
         var id = $('#id').val();
         var brand = $('#brand').val();
         var year = $('#year').val();
@@ -61,36 +93,129 @@
         $.ajax({
             url: 'http://localhost:8080/cars',
             type: 'POST',
-            data: JSON.stringify({ id: id , brand: brand, year: year, electric: electric}),
+            data: JSON.stringify({id: id, brand: brand, year: year, electric: electric}),
             contentType: "application/json; charset=utf-8",
             dataType: "json",
-            success: function(data) {
+            success: function (data) {
                 $('#result').text(JSON.stringify(data));
+                getCars()
 
             },
-            error: function() {
+            error: function () {
                 $('#result').text('Error sending data.');
             }
         });
     }
-    function showCars(msg)
-    {
+
+    function showCars(msg) {
         console.log(msg);
-        $("#cartable tbody").remove(); //remove previous data
-        $.each(msg._embedded.carList, function (id, car) { // iterate by all JSON elements
-            // (books)
-            // First check if a <tbody> tag exists and add one if not
-            if ($("#cartable tbody").length == 0) {
+        $("#cartable tbody").remove();
+        var promises = [];
+
+        $.each(msg._embedded.carList, function (id, car) {
+            if ($("#cartable tbody").length === 0) {
                 $("#cartable").append("<tbody></tbody>");
             }
-            // Append table row to <table> (in <tbody> part)
-            $("#cartable tbody").append("<tr>" +
+
+            var buttonsPromise = getCar(car.id).then(function (data) {
+                var buttons = "";
+                $.each(data._links, function (name, href) {
+                    if(name==="self"){
+                        buttons += "<button onclick='getCar(" + car.id + ")'>get</button>";
+                    }
+                    else if(name==="delete"){
+                        buttons += "<button onclick='deleteCar(" + car.id + ")'>" + name +
+                            "</button>";
+                    }
+                    else{
+                        buttons += "<button onclick='patchCar(" + JSON.stringify(href.href) + ")'>" + name +
+                            "</button>";
+                    }
+                    console.log(name);
+                    console.log(href.href);
+                });
+                return buttons;
+            });
+
+            promises.push(buttonsPromise);
+
+            var row = "<tr>" +
                 "<td>" + car.id + "</td>" +
                 "<td>" + car.brand + "</td>" +
                 "<td>" + car.year + "</td>" +
                 "<td>" + car.electric + "</td>" +
+                "<td>" + car.carStatus + "</td>" +
+                "<td>" +
                 "</td>" +
-                "</tr>");
+                "</tr>";
+
+            $("#cartable tbody").append(row);
+        });
+
+        Promise.all(promises).then(function (buttonsArray) {
+            buttonsArray.forEach(function (buttons, index) {
+                var row = $("#cartable tbody tr").eq(index);
+                row.find("td").eq(5).append(buttons);
+            });
+        });
+    }
+
+    function putCar() {
+        var id = $('#id').val();
+        var brand = $('#brand').val();
+        var year = $('#year').val();
+        var electric = $('#electric').val();
+        $.ajax({
+            url: 'http://localhost:8080/cars' + "/" + id,
+            type: 'PUT',
+            data: JSON.stringify({id: id, brand: brand, year: year, electric: electric}),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (data) {
+                $('#result').text(JSON.stringify(data));
+                getCars()
+
+            },
+            error: function () {
+                $('#result').text('Error sending data.');
+            }
+        });
+    }
+
+    function deleteCar(id) {
+        console.log(id);
+        if (id == null) {
+            id = $('#id').val();
+        }
+        console.log(id);
+        $.ajax({
+            url: 'http://localhost:8080/cars' + "/" + id,
+            type: 'DELETE',
+            contentType: "application/json; charset=utf-8",
+            success: function (data) {
+                getCars()
+
+            },
+            error: function () {
+                $('#result').text('Error sending data.');
+            }
+        });
+    }
+
+    function patchCar(link) {
+        console.log(link);
+        $.ajax({
+            url: link,
+            type: 'PATCH',
+            contentType: "application/json; charset=utf-8",
+            success: function (data) {
+                $('#result').text(JSON.stringify(data));
+                getCars()
+
+            },
+            error: function () {
+                $('#result').text('Error sending data.');
+            }
         });
     }
 </script>
