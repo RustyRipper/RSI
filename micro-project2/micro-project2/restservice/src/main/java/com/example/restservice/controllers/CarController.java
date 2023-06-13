@@ -3,11 +3,7 @@ package com.example.restservice.controllers;
 import com.example.restservice.exceptions.*;
 import com.example.restservice.models.Car;
 import com.example.restservice.models.CarStatus;
-import com.example.restservice.rabbitmq.ProducerA;
-import com.example.restservice.rabbitmq.ProducerAll;
-import com.example.restservice.rabbitmq.ProducerEnergy;
-import org.springframework.amqp.core.AmqpTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.restservice.rabbitmq.*;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
@@ -19,11 +15,10 @@ import org.springframework.web.bind.annotation.*;
 import com.example.restservice.repositories.CarRepository;
 import com.example.restservice.repositories.CarRepositoryImpl;
 
-import javax.swing.text.html.parser.Entity;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
@@ -34,17 +29,23 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @RestController
 public class CarController {
 
-    //private final ProducerA producerA;
+    private final ProducerA producerA;
 
-    private final ProducerAll producerAll;
-    private final ProducerEnergy producerEnergy;
+//    private final ProducerI producerI;
+
+    private final ProducerE producerE;
+
+//    private final ProducerAll producerAll;
+//    private final ProducerEnergy producerEnergy;
 
     private CarRepository dataRepository = new CarRepositoryImpl();
 
-    public CarController( ProducerAll producerAll, ProducerEnergy producerEnergy) {
-        //this.producerA = producerA;
-        this.producerAll = producerAll;
-        this.producerEnergy = producerEnergy;
+    public CarController(ProducerA producerA, ProducerE producerE) {
+        this.producerA = producerA;
+        this.producerE = producerE;
+//        this.producerI = producerI;
+//        this.producerAll = producerAll;
+//        this.producerEnergy = producerEnergy;
     }
 
     @GetMapping("/cars/{id}")
@@ -63,10 +64,11 @@ public class CarController {
                 em.add(linkTo(methodOn(CarController.class).registerCar(id)).withRel("register"));
                 em.add(linkTo(methodOn(CarController.class).deleteCar(id)).withRel("delete"));
             }
-            //producerA.sendMsg("GET Car: id=" + id);
-            producerAll.sendLog("GET Car: id=" + id);
+            producerA.sendMsg("GET Car: id=" + id);
+            //producerAll.sendLog("GET Car: id=" + id);
             if(car.isElectric()){
-                producerEnergy.sendLog("GET Car: id=" + id);
+                //producerEnergy.sendLog("GET Car: id=" + id);
+                producerE.sendMsg("GET Car: id=" + id);
             }
 
             return em;
@@ -83,9 +85,11 @@ public class CarController {
         try {
             System.out.println("...called updateCar");
 
-            producerAll.sendLog("PUT Car: id=" + id);
+//            producerAll.sendLog("PUT Car: id=" + id);
+            producerA.sendMsg("PUT Car: id=" + id);
             if(car.isElectric()){
-                producerEnergy.sendLog("PUT Car: id=" + id);
+//                producerEnergy.sendLog("PUT Car: id=" + id);
+                producerE.sendMsg("PUT Car: id=" + id);
             }
             return EntityModel.of(dataRepository.updateCar(car.getId(), car.getBrand(), car.getYear() ,car.isElectric()),
                     linkTo(methodOn(CarController.class).getCar(id)).withSelfRel(),
@@ -95,9 +99,7 @@ public class CarController {
         } catch (CarNotFoundEx e) {
             System.out.println("...PUT Exception");
             throw e;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (TimeoutException e) {
+        } catch (IOException | TimeoutException e) {
             throw new RuntimeException(e);
         }
     }
@@ -108,9 +110,11 @@ public class CarController {
         try {
             System.out.println("delete Car");
             Car car = dataRepository.getCar(id);
-            producerAll.sendLog("DELETE Car: id=" + id);
+//            producerAll.sendLog("DELETE Car: id=" + id);
+            producerA.sendMsg("DELETE Car: id=" + id);
             if(car.isElectric()){
-                producerEnergy.sendLog("DELETE Car: id=" + id);
+                producerE.sendMsg("DELETE Car: id=" + id);
+//                producerEnergy.sendLog("DELETE Car: id=" + id);
             }
             dataRepository.deleteCar(id);
 
@@ -118,6 +122,8 @@ public class CarController {
         } catch (CarNotFoundEx e) {
             System.out.println("...DELETE Exception");
             throw e;
+        } catch (IOException | TimeoutException e) {
+            throw new RuntimeException(e);
         }
 
     }
@@ -127,10 +133,16 @@ public class CarController {
 
         try {
             if(car.getBrand() == null) throw new CarBadParams();
-            producerAll.sendLog("POST Car: id=" + car.getId());
+
+            producerA.sendMsg("POST Car: id=" + car.getId());
             if(car.isElectric()){
-                producerEnergy.sendLog("POST Car: id=" + car.getId());
+                producerE.sendMsg("POST Car: id=" + car.getId());
             }
+
+//            producerAll.sendLog("POST Car: id=" + car.getId());
+//            if(car.isElectric()){
+//                producerEnergy.sendLog("POST Car: id=" + car.getId());
+//            }
             System.out.println("add Car");
             return EntityModel.of(dataRepository.addCar(car.getId(), car.getBrand(), car.getYear() ,car.isElectric()),
                     linkTo(methodOn(CarController.class).getCar(car.getId())).withSelfRel(),
@@ -141,9 +153,7 @@ public class CarController {
             System.out.println("...POST Exception");
             System.out.println(e.getMessage());
             throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (TimeoutException e) {
+        } catch (IOException | TimeoutException e) {
             throw new RuntimeException(e);
         }
     }
@@ -161,11 +171,7 @@ public class CarController {
                                                     linkTo(methodOn(CarController.class).deleteCar(car.getId())).withRel("delete"),
                                                     linkTo(methodOn(CarController.class).getAllCars()).withRel("list all")
                                             );
-                        } catch (CarNotFoundEx e) {
-                            throw new RuntimeException(e);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        } catch (TimeoutException e) {
+                        } catch (CarNotFoundEx | IOException | TimeoutException e) {
                             throw new RuntimeException(e);
                         }
                     }).collect(Collectors.toList());
@@ -189,11 +195,14 @@ public class CarController {
                 list.add(linkTo(methodOn(CarController.class).getCar(car.getId())).withSelfRel());
                 list.add(linkTo(methodOn(CarController.class).unregisterCar(car.getId())).withRel("unregister"));
                 list.add(linkTo(methodOn(CarController.class).getAllCars()).withRel("list all"));
-
-                producerAll.sendLog("REGISTER Car: id=" + id);
+                producerA.sendMsg("REGISTER Car: id=" + id);
                 if(car.isElectric()){
-                    producerEnergy.sendLog("REGISTER Car: id=" + id);
+                    producerE.sendMsg("REGISTER Car: id=" + id);
                 }
+//                producerAll.sendLog("REGISTER Car: id=" + id);
+//                if(car.isElectric()){
+//                    producerEnergy.sendLog("REGISTER Car: id=" + id);
+//                }
                 return ResponseEntity.status(HttpStatus.ACCEPTED)
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .body(list);
@@ -201,11 +210,7 @@ public class CarController {
             else{
                 throw new ConflictEx();
             }
-        } catch (CarNotFoundEx | ConflictEx e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (TimeoutException e) {
+        } catch (CarNotFoundEx | ConflictEx | IOException | TimeoutException e) {
             throw new RuntimeException(e);
         }
     }
@@ -220,11 +225,14 @@ public class CarController {
                 list.add(linkTo(methodOn(CarController.class).registerCar(car.getId())).withRel("register"));
                 list.add( linkTo(methodOn(CarController.class).deleteCar(car.getId())).withRel("delete"));
                 list.add(linkTo(methodOn(CarController.class).getAllCars()).withRel("list all"));
-
-                producerAll.sendLog("UNREGISTER Car: id=" + id);
+                producerA.sendMsg("UNREGISTER Car: id=" + id);
                 if(car.isElectric()){
-                    producerEnergy.sendLog("UNREGISTER Car: id=" + id);
+                    producerE.sendMsg("UNREGISTER Car: id=" + id);
                 }
+//                producerAll.sendLog("UNREGISTER Car: id=" + id);
+//                if(car.isElectric()){
+//                    producerEnergy.sendLog("UNREGISTER Car: id=" + id);
+//                }
 
                 return ResponseEntity.status(HttpStatus.ACCEPTED)
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -237,5 +245,23 @@ public class CarController {
             throw new RuntimeException(e);
         }
     }
+    @GetMapping("/items/{id}/image")
+    public ResponseEntity<byte[]> getItemImage(@PathVariable("id") String itemId) throws Exception {
+        System.out.println("image!");
+        ProducerI producerI = null;
+        try{
+            producerI = new ProducerI();
 
+            return ResponseEntity.ok()
+                    .contentType(MediaType.IMAGE_JPEG)
+                    .body(producerI.getImg(itemId));
+        }catch (Exception e){
+            e.printStackTrace();
+        } finally {
+            assert producerI != null;
+            producerI.close();
+            System.out.println("close");
+        }
+        return null;
+    }
 }

@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>AJAX RSI lab5</title>
+    <title>AJAX RSI lab6</title>
     <link rel="stylesheet" type="text/css" href="style.css">
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-<h1>RSI list5</h1>
+<h1>RSI list6</h1>
 
 <div id="data"></div>
 
@@ -20,6 +20,8 @@
 <input type="text" id="year">
 <p>ELECTRIC</p>
 <input type="text" id="electric">
+<p>IMG</p>
+<input type="text" id="img">
 <br>
 <br>
 <div id="button-container">
@@ -28,6 +30,7 @@
     <button onclick="getCars()">show all</button>
     <button onclick="putCar()">putCar</button>
     <button onclick="deleteCar(null)">deleteCar</button>
+    <button onclick="displayImage()">getImg</button>
 </div>
 <div id="result"></div>
 <table id="cartable">
@@ -42,6 +45,7 @@
     </tr>
     </thead>
     <tbody id="carlist"></tbody>
+    <div id="imageContainer"></div>
 </table>
 
 <script>
@@ -215,6 +219,28 @@
             },
             error: function () {
                 $('#result').text('Error sending data.');
+            }
+        });
+    }
+
+    function displayImage() {
+        var itemId = $('#img').val();
+
+        var url = 'http://localhost:8080/items/' + itemId + "/image";
+
+        $.ajax({
+            url: url,
+            type: "GET",
+            contentType: "image/jpg",
+            success: function(response) {
+                var imageElement = document.createElement("img");
+                imageElement.src = url;
+                document.getElementById("imageContainer").appendChild(imageElement);
+                console.log(url);
+
+            },
+            error: function(xhr, status, error) {
+                console.error("Błąd pobierania obrazka:", error);
             }
         });
     }
