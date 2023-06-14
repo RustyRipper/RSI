@@ -13,7 +13,11 @@ public class ConsumerA {
         Connection connection = factory.newConnection();
         Channel channel = connection.createChannel();
         channel.exchangeDeclare("DIRECT", BuiltinExchangeType.DIRECT);
-        channel.queueBind("kolejka", "DIRECT", "all");
+        String queueName = channel.queueDeclare().getQueue();
+        String[] routingKeys = new String[]{"non-energy", "energy"};
+        for(String key: routingKeys){
+            channel.queueBind(queueName, "DIRECT", key);
+        }
 
         DefaultConsumer consumer = new DefaultConsumer(channel) {
             public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties,
@@ -29,7 +33,7 @@ public class ConsumerA {
             }
         };
 
-        channel.basicConsume("kolejka", true, consumer);
+        channel.basicConsume(queueName, true, consumer);
         Scanner scanner = new Scanner(System.in);
         scanner.nextLine();
         connection.close();

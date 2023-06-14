@@ -9,17 +9,19 @@ import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
+
 @Configuration
 public class ProducerE {
 
     public void sendMsg(String msg) throws IOException, TimeoutException {
-        String queueName = "kolejka2";
+        //String queueName = "kolejka2";
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
         Connection connection = factory.newConnection();
         Channel channel = connection.createChannel();
         channel.exchangeDeclare("DIRECT", BuiltinExchangeType.DIRECT);
-        channel.queueDeclare(queueName, false, false, false, null);
+
+       // channel.queueDeclare(queueName, false, false, false, null);
 
         channel.basicPublish("DIRECT", "energy", null, msg.getBytes());
         connection.close();

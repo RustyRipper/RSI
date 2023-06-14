@@ -13,15 +13,15 @@ import java.util.concurrent.TimeoutException;
 public class ProducerA {
 
     public void sendMsg(String msg) throws IOException, TimeoutException {
-        String queueNameA = "kolejka";
+        //String queueNameA = "kolejka";
         ConnectionFactory factory2 = new ConnectionFactory();
         factory2.setHost("localhost");
         Connection connection2 = factory2.newConnection();
         Channel channel2 = connection2.createChannel();
         channel2.exchangeDeclare("DIRECT", BuiltinExchangeType.DIRECT);
-        channel2.queueDeclare(queueNameA, false, false, false, null);
+        //channel2.queueDeclare(queueNameA, false, false, false, null);
 
-        channel2.basicPublish("DIRECT", "all", null, msg.getBytes());
+        channel2.basicPublish("DIRECT", "non-energy", null, msg.getBytes());
         connection2.close();
     }
 }

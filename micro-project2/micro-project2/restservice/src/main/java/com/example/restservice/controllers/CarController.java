@@ -64,11 +64,14 @@ public class CarController {
                 em.add(linkTo(methodOn(CarController.class).registerCar(id)).withRel("register"));
                 em.add(linkTo(methodOn(CarController.class).deleteCar(id)).withRel("delete"));
             }
-            producerA.sendMsg("GET Car: id=" + id);
+
             //producerAll.sendLog("GET Car: id=" + id);
             if(car.isElectric()){
                 //producerEnergy.sendLog("GET Car: id=" + id);
                 producerE.sendMsg("GET Car: id=" + id);
+            }
+            else{
+                producerA.sendMsg("GET Car: id=" + id);
             }
 
             return em;
@@ -86,10 +89,13 @@ public class CarController {
             System.out.println("...called updateCar");
 
 //            producerAll.sendLog("PUT Car: id=" + id);
-            producerA.sendMsg("PUT Car: id=" + id);
+
             if(car.isElectric()){
 //                producerEnergy.sendLog("PUT Car: id=" + id);
                 producerE.sendMsg("PUT Car: id=" + id);
+            }
+            else{
+                producerA.sendMsg("PUT Car: id=" + id);
             }
             return EntityModel.of(dataRepository.updateCar(car.getId(), car.getBrand(), car.getYear() ,car.isElectric()),
                     linkTo(methodOn(CarController.class).getCar(id)).withSelfRel(),
@@ -111,10 +117,13 @@ public class CarController {
             System.out.println("delete Car");
             Car car = dataRepository.getCar(id);
 //            producerAll.sendLog("DELETE Car: id=" + id);
-            producerA.sendMsg("DELETE Car: id=" + id);
+
             if(car.isElectric()){
                 producerE.sendMsg("DELETE Car: id=" + id);
 //                producerEnergy.sendLog("DELETE Car: id=" + id);
+            }
+            else{
+                producerA.sendMsg("DELETE Car: id=" + id);
             }
             dataRepository.deleteCar(id);
 
@@ -134,9 +143,12 @@ public class CarController {
         try {
             if(car.getBrand() == null) throw new CarBadParams();
 
-            producerA.sendMsg("POST Car: id=" + car.getId());
+
             if(car.isElectric()){
                 producerE.sendMsg("POST Car: id=" + car.getId());
+            }
+            else {
+                producerA.sendMsg("POST Car: id=" + car.getId());
             }
 
 //            producerAll.sendLog("POST Car: id=" + car.getId());
@@ -195,9 +207,12 @@ public class CarController {
                 list.add(linkTo(methodOn(CarController.class).getCar(car.getId())).withSelfRel());
                 list.add(linkTo(methodOn(CarController.class).unregisterCar(car.getId())).withRel("unregister"));
                 list.add(linkTo(methodOn(CarController.class).getAllCars()).withRel("list all"));
-                producerA.sendMsg("REGISTER Car: id=" + id);
+
                 if(car.isElectric()){
                     producerE.sendMsg("REGISTER Car: id=" + id);
+                }
+                else{
+                    producerA.sendMsg("REGISTER Car: id=" + id);
                 }
 //                producerAll.sendLog("REGISTER Car: id=" + id);
 //                if(car.isElectric()){
@@ -225,9 +240,12 @@ public class CarController {
                 list.add(linkTo(methodOn(CarController.class).registerCar(car.getId())).withRel("register"));
                 list.add( linkTo(methodOn(CarController.class).deleteCar(car.getId())).withRel("delete"));
                 list.add(linkTo(methodOn(CarController.class).getAllCars()).withRel("list all"));
-                producerA.sendMsg("UNREGISTER Car: id=" + id);
+
                 if(car.isElectric()){
                     producerE.sendMsg("UNREGISTER Car: id=" + id);
+                }
+                else{
+                    producerA.sendMsg("UNREGISTER Car: id=" + id);
                 }
 //                producerAll.sendLog("UNREGISTER Car: id=" + id);
 //                if(car.isElectric()){
